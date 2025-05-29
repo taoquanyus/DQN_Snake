@@ -62,11 +62,7 @@ class Agent:
 
     def train_short_memory(self, state, action, reward, next_state, done):
         # self.memory.append((state, action, reward, next_state, done))
-        if reward == 0:
-            if random.randint(1, 10) == 1:
-                self.memory.add(state, action, reward, next_state, done)
-        else:
-            self.memory.add(state, action, reward, next_state, done)
+        self.memory.add(state, action, reward, next_state, done)
         self.trainer.train_step(state, action, reward, next_state, done)
 
     def get_action(self, state):
@@ -112,27 +108,44 @@ class Agent:
                     self.game.init()
                     if self.epoch % SHOW == 0:
                         self.graph_init()
-                    reward = 0
                     done = False
                     # 判断游戏是否结束
                     state = self.game.get_state()
                     # 先获得state
                     next_state = self.game.get_state()
                     while not done:
+                        # Default reward for each step
+                        reward = -0.1
                         state = self.game.get_state()
                         action = self.get_action(state)
+
+                        head_old_x, head_old_y = self.game.snake[-1]
+                        food_x, food_y = self.game.i, self.game.j
+                        dist_old = abs(head_old_x - food_x) + abs(head_old_y - food_y)
+
                         try:
                             eaten = self.game.move(action)
                         except IllegalMoveError:
-                            reward = -20
+                            reward = -30
                             done = True
                         except TimeoutError:
-                            reward = -25
+                            reward = -30
                             done = True
                         else:
                             if self.epoch % SHOW == 0:
                                 self.update_ui()
-                            reward = 40 * int(eaten)
+                            
+                            if eaten:
+                                reward = 50
+                            else:
+                                head_new_x, head_new_y = self.game.snake[-1]
+                                dist_new = abs(head_new_x - food_x) + abs(head_new_y - food_y)
+                                if dist_new < dist_old:
+                                    reward = 2
+                                elif dist_new > dist_old:
+                                    reward = -3
+                                # If dist_new == dist_old, reward remains -0.1
+
                             next_state = self.game.get_state()
                         self.train_short_memory(state, action, reward, next_state, done)
                     if self.epoch % SHOW == 0:
