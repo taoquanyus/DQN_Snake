@@ -8,7 +8,10 @@ if __name__ == '__main__':
     use_gpu = torch.cuda.is_available()
 
     # Decide which device we want to run on
-    print(torch.cuda.get_device_name(0))
+    if use_gpu:
+        print(torch.cuda.get_device_name(0))
+    else:
+        print("Running on CPU")
 
     agent = Agent()
     agent.train()
