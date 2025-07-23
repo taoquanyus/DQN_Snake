@@ -3,7 +3,6 @@ import random
 import numpy as np
 import torch
 from matplotlib import pyplot as plt
-from torch import mean
 
 from dqn import DQN
 from error import IllegalMoveError
@@ -18,12 +17,12 @@ class Agent:
 
     def __init__(self):
 
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.epsilon = EPSILON  # randomness
         self.gamma = GAMMA  # discount rate
         self.memory = ReplayBuffer(MAX_MEMORY)
         self.load_model()
-        self.trainer = DQN(self.model).cuda()
-        # self.trainer.cuda()
+        self.trainer = DQN(self.model, self.device).to(self.device)
         self.game = SnakeGame()
         self.batch_size = BATCH_SIZE
         self.train_score = self.model.train_score
@@ -35,11 +34,12 @@ class Agent:
             with open('./data/epoch.txt', 'r', encoding='utf8') as fp:
                 self.epoch = int(fp.readline())
                 fp.close()
-                self.model = torch.load(f'./data/{self.epoch}.pth')
+                self.model = torch.load(
+                    f'./data/{self.epoch}.pth', map_location=self.device)
                 self.model.eval()
-        except:
+        except Exception:
             self.epoch = 1
-            self.model = Qnet()
+            self.model = Qnet().to(self.device)
 
     def save_model(self):
         with open('./data/epoch.txt', 'w', encoding='utf8') as fp:
@@ -82,7 +82,7 @@ class Agent:
             # 迭代论数小于5000时，有eplison=1/300
             if random.randint(0, 299) == 0:
                 return random.randint(0, 3)
-        state = torch.tensor(state).cuda()
+        state = torch.tensor(state, device=self.device)
         state = torch.unsqueeze(state, 0)
         prediction = self.model(state)
         move = torch.argmax(prediction).item()

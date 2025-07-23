@@ -5,20 +5,21 @@ from static_parameters import LR, GAMMA
 
 
 class DQN(nn.Module):
-    def __init__(self, model):
+    def __init__(self, model, device):
         super().__init__()
         self.lr = LR
         self.gamma = GAMMA
-        self.model = model
-        self.optimizer = optim.AdamW(model.parameters(), lr=self.lr)
+        self.device = device
+        self.model = model.to(self.device)
+        self.optimizer = optim.AdamW(self.model.parameters(), lr=self.lr)
         self.criterion = nn.MSELoss()
 
     def train_step(self, state, action, reward, next_state, done):
         # 把state都用tensor来表示
-        state = torch.tensor(state, dtype=torch.float).cuda()
-        next_state = torch.tensor(next_state, dtype=torch.float).cuda()
-        action = torch.tensor(action, dtype=torch.long).cuda()
-        reward = torch.tensor(reward, dtype=torch.float).cuda()
+        state = torch.tensor(state, dtype=torch.float, device=self.device)
+        next_state = torch.tensor(next_state, dtype=torch.float, device=self.device)
+        action = torch.tensor(action, dtype=torch.long, device=self.device)
+        reward = torch.tensor(reward, dtype=torch.float, device=self.device)
 
         if len(state.shape) == 1: # 短期记忆
             state = torch.unsqueeze(state, 0)
