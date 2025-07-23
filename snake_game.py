@@ -27,8 +27,12 @@ class SnakeGame():
         self.eaten = False
 
     def place_food(self):
-        self.i = random.randint(0, 15)
-        self.j = random.randint(0, 15)
+        # Ensure that food does not spawn on the snake's body
+        while True:
+            self.i = random.randint(0, 15)
+            self.j = random.randint(0, 15)
+            if (self.i, self.j) not in self.snake:
+                break
 
     def get_state(self):
         incoord = lambda m, n: m in range(0, 16) and n in range(0, 16)
