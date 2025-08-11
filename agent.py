@@ -121,6 +121,8 @@ class Agent:
                     while not done:
                         state = self.game.get_state()
                         action = self.get_action(state)
+                        # 计算行动前蛇头与食物的曼哈顿距离
+                        old_distance = abs(self.game.p - self.game.i) + abs(self.game.q - self.game.j)
                         try:
                             eaten = self.game.move(action)
                         except IllegalMoveError:
@@ -132,7 +134,14 @@ class Agent:
                         else:
                             if self.epoch % SHOW == 0:
                                 self.update_ui()
+                            new_distance = abs(self.game.p - self.game.i) + abs(self.game.q - self.game.j)
                             reward = 40 * int(eaten)
+                            if not eaten:
+                                # 简单奖励：靠近食物奖励，远离食物惩罚
+                                if new_distance < old_distance:
+                                    reward += 1
+                                else:
+                                    reward -= 1
                             next_state = self.game.get_state()
                         self.train_short_memory(state, action, reward, next_state, done)
                     if self.epoch % SHOW == 0:
