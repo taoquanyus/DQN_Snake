@@ -135,13 +135,11 @@ class Agent:
                             if self.epoch % SHOW == 0:
                                 self.update_ui()
                             new_distance = abs(self.game.p - self.game.i) + abs(self.game.q - self.game.j)
+                            distance_change = old_distance - new_distance
                             reward = 40 * int(eaten)
                             if not eaten:
-                                # 简单奖励：靠近食物奖励，远离食物惩罚
-                                if new_distance < old_distance:
-                                    reward += 1
-                                else:
-                                    reward -= 1
+                                # 密集奖励：根据距离变化给予奖励并施加小的时间惩罚
+                                reward += distance_change - 0.1
                             next_state = self.game.get_state()
                         self.train_short_memory(state, action, reward, next_state, done)
                     if self.epoch % SHOW == 0:
