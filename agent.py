@@ -126,20 +126,20 @@ class Agent:
                         try:
                             eaten = self.game.move(action)
                         except IllegalMoveError:
-                            reward = -20
+                            reward = -2
                             done = True
                         except TimeoutError:
-                            reward = -25
+                            reward = -2.5
                             done = True
                         else:
                             if self.epoch % SHOW == 0:
                                 self.update_ui()
                             new_distance = abs(self.game.p - self.game.i) + abs(self.game.q - self.game.j)
                             distance_change = old_distance - new_distance
-                            reward = 40 * int(eaten)
+                            reward = 4 * int(eaten)
                             if not eaten:
                                 # 密集奖励：根据距离变化给予奖励并施加小的时间惩罚
-                                reward += distance_change - 0.1
+                                reward += 0.1 * distance_change - 0.01
                             next_state = self.game.get_state()
                         self.train_short_memory(state, action, reward, next_state, done)
                     if self.epoch % SHOW == 0:
