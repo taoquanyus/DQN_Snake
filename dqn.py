@@ -37,7 +37,9 @@ class DQN(nn.Module):
             if done[i]:
                 Q_new = reward[i]
             else:
-                Q_new = reward[i] + self.gamma * torch.max(self.model(torch.unsqueeze(next_state[i], 0)))
+                with torch.no_grad():
+                    next_q = self.model(torch.unsqueeze(next_state[i], 0))
+                    Q_new = reward[i] + self.gamma * torch.max(next_q)
 
             target[i][action[i]] = Q_new
 
